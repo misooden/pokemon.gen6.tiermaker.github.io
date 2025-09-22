@@ -1,428 +1,301 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Tier表作成ツール</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ポケモン ティア表メーカー</title>
+
+  <!-- React & ReactDOM CDN -->
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <!-- html2canvas CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
   <style>
-    /* ページの基本スタイル */
-    :root {
-      --bg: #f6f7f9;
-      --card: #fff;
-      --line: #e5e7eb;
-      --text: #1f2937;
-      --muted: #6b7280;
-      --primary: #2563eb;
-      --ok: #10b981;
-      --shadow: 0 6px 18px rgba(0, 0, 0, 0.07);
-    }
-    * {
-      box-sizing: border-box;
-    }
+    /* ===== CSS ===== */
     body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f7fafc;
+      color: #1a202c;
       margin: 0;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Meiryo, sans-serif;
-      background: var(--bg);
-      color: var(--text);
+      padding: 0;
     }
-    .wrap {
-      max-width: 1100px;
-      margin: 24px auto;
-      padding: 0 16px;
+
+    header {
+      background-color: #ffffff;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      padding: 1rem;
+      text-align: center;
     }
-    h1 {
+
+    header h1 {
+      font-size: 1.8rem;
       margin: 0;
-      font-size: clamp(18px, 2.6vw, 26px);
     }
-    .lead {
-      margin: 8px 0 16px;
-      color: var(--muted);
-    }
-    .grid {
-      display: grid;
-      grid-template-columns: 320px 1fr;
-      gap: 16px;
-    }
-    @media (max-width: 920px) {
-      .grid {
-        grid-template-columns: 1fr;
-      }
-    }
-    .card {
-      background: var(--card);
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      padding: 14px;
-    }
-    .row {
+
+    .add-tier-container {
+      max-width: 1200px;
+      margin: 1rem auto;
+      padding: 0 1rem;
       display: flex;
-      align-items: center;
-      gap: 8px;
-      flex-wrap: wrap;
+      gap: 0.5rem;
     }
-    .btn {
-      height: 34px;
-      padding: 6px 12px;
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      background: #f4f4f5;
-      cursor: pointer;
-      font-weight: 600;
-    }
-    .btn:hover {
-      background: #eee;
-    }
-    .btn.primary {
-      background: var(--primary);
-      border-color: var(--primary);
-      color: #fff;
-    }
-    .btn.ok {
-      background: var(--ok);
-      border-color: var(--ok);
-      color: #fff;
-    }
-    input[type="text"] {
-      height: 34px;
-      padding: 6px 10px;
-      border: 1px solid var(--line);
-      border-radius: 8px;
-    }
-    .topbar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      margin-bottom: 10px;
-    }
-    .actions {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-    }
-    .pool,
-    .tier-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      min-height: 120px;
-      padding: 10px;
-      border: 1px dashed var(--line);
-      background: #fff;
-    }
-    .pool {
-      border-radius: 12px;
-    }
-    .thumb {
-      width: 90px;
-      height: 90px;
-      border-radius: 10px;
-      overflow: hidden;
-      border: 1px solid var(--line);
-      background: #fafafa;
-      position: relative;
-    }
-    .thumb img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-    }
-    .thumb .x {
-      position: absolute;
-      top: 4px;
-      right: 4px;
-      background: #fff;
-      border: 1px solid var(--line);
-      border-radius: 6px;
-      width: 22px;
-      height: 22px;
-      display: grid;
-      place-items: center;
-      cursor: pointer;
-    }
-    .thumb .x:hover {
-      background: #fee2e2;
-    }
-    .export-wrap {
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      overflow: hidden;
-    }
-    .export-head {
-      padding: 10px;
-      background: #fafafa;
-      border-bottom: 1px solid var(--line);
-    }
-    .tiers {
+
+    .tier-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 1rem;
       display: flex;
       flex-direction: column;
+      gap: 1rem;
     }
-    .tier {
-      display: grid;
-      grid-template-columns: 100px 1fr;
-      align-items: stretch;
-      border-bottom: 1px solid var(--line);
-    }
-    .tier:first-child {
-      border-top-left-radius: 12px;
-      border-top-right-radius: 12px;
-      overflow: hidden;
-    }
-    .tier:last-child {
-      border-bottom-left-radius: 12px;
-      border-bottom-right-radius: 12px;
-      overflow: hidden;
-    }
-    .tier-label {
+
+    .tier-row {
       display: flex;
       align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem;
+      border: 1px solid #e2e8f0;
+      background-color: #ffffff;
+      border-radius: 8px;
+      flex-wrap: wrap;
+    }
+
+    .tier-label {
+      font-weight: bold;
+      width: 80px;
+      text-align: center;
+    }
+
+    .tier-images {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .tier-images img {
+      width: 64px;
+      height: 64px;
+      object-fit: contain;
+      cursor: grab;
+      border-radius: 4px;
+      transition: transform 0.2s ease;
+    }
+
+    .tier-images img:active {
+      cursor: grabbing;
+      transform: scale(0.95);
+    }
+
+    .button-container {
+      margin-top: 2rem;
+      display: flex;
       justify-content: center;
-      font-weight: 800;
-      border-right: 1px solid var(--line);
-      min-height: 60px;
-      color: #111;
-      padding: 0 8px;
-      position: relative;
+      gap: 1rem;
     }
-    .hint {
-      color: var(--muted);
-      font-size: 13px;
+
+    button.save {
+      padding: 0.5rem 1rem;
+      border: none;
+      background-color: #3182ce;
+      color: white;
+      font-size: 1rem;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
     }
-    .danger-text {
-      color: #b91c1c;
-      font-size: 13px;
+
+    button.save:hover {
+      background-color: #2b6cb0;
     }
-    .hidden {
-      display: none;
-    }
-    
-    /* Sortable.js 用のスタイル */
-    .sortable-ghost {
-      opacity: 0.3;
+
+    footer {
+      text-align: center;
+      color: #718096;
+      padding: 1rem;
+      font-size: 0.875rem;
     }
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <div class="topbar">
-      <h1>Tier表作成ツール</h1>
-      <div class="actions">
-        <button id="exportPng" class="btn ok">PNG書き出し</button>
-      </div>
-    </div>
-    <p class="lead">画像をドラッグ＆ドロップで並べ替え。</p>
+  <header>
+    <h1>ポケモン ティア表メーカー</h1>
+  </header>
 
-    <div class="grid">
-      <section class="card" aria-label="操作">
-        <h2 style="margin:0 0 8px; font-size:18px">画像の読み込み</h2>
-        <div class="row">
-          <input id="file" type="file" accept="image/png, image/jpeg" multiple class="hidden" />
-          <button id="pick" class="btn">ファイルを選択</button>
-          <span class="hint">PNG / JPEG（各 2MB・最大 2000×2000px）</span>
-        </div>
-        <p id="msg" class="danger-text" aria-live="polite"></p>
-        
-        <div style="margin-top:14px;">
-            <p class="hint">未配置プール</p>
-            <div id="pool" class="pool" aria-label="未配置プール"></div>
-        </div>
-      </section>
+  <div id="root"></div>
 
-      <section class="card export-wrap" aria-label="プレビュー">
-        <div class="export-head row">
-          <strong>Tier表</strong><span style="flex:1"></span><span class="hint">画像をドラッグして並び替え</span>
-        </div>
-        <div id="board" style="padding:12px">
-          <div class="tiers" id="tiers">
-            <div class="tier" data-id="tier1">
-              <div class="tier-label" style="background-color: #fca5a5;">S</div>
-              <div class="tier-row"></div>
-            </div>
-            <div class="tier" data-id="tier2">
-              <div class="tier-label" style="background-color: #fdba74;">A</div>
-              <div class="tier-row"></div>
-            </div>
-            <div class="tier" data-id="tier3">
-              <div class="tier-label" style="background-color: #fcd34d;">B</div>
-              <div class="tier-row"></div>
-            </div>
-            <div class="tier" data-id="tier4">
-              <div class="tier-label" style="background-color: #86efac;">C</div>
-              <div class="tier-row"></div>
-            </div>
-            <div class="tier" data-id="tier5">
-              <div class="tier-label" style="background-color: #93c5fd;">D</div>
-              <div class="tier-row"></div>
+  <footer>© 2025 ポケモン ティア表メーカー</footer>
+
+  <script type="text/javascript">
+    const { useState } = React;
+
+    function App() {
+      const [tiers, setTiers] = useState([
+        { name: 'S', pokemons: [] },
+        { name: 'A', pokemons: [] },
+        { name: 'B', pokemons: [] },
+      ]);
+
+      const [pool, setPool] = useState([
+        { id: 1, name: 'フシギダネ', img: 'images/【公式絵No.0001】フシギダネ.png' },
+        { id: 2, name: 'フシギソウ', img: 'images/【公式絵No.0002】フシギソウ.png' },
+        { id: 3, name: 'フシギバナ', img: 'images/【公式絵No.0003】フシギバナ.png' },
+      ]);
+
+      const [newTierName, setNewTierName] = useState('');
+      const [dragging, setDragging] = useState(null);
+
+      function onDragStart(pokemon, from) {
+        setDragging({ pokemon, from });
+      }
+
+      function onDropTier(tierName) {
+        if (!dragging) return;
+        const { pokemon, from } = dragging;
+
+        if (from === 'pool') {
+          setPool(pool.filter(p => p.id !== pokemon.id));
+        } else {
+          setTiers(tiers.map(t => {
+            if (t.name === from) {
+              return { ...t, pokemons: t.pokemons.filter(p => p.id !== pokemon.id) };
+            }
+            return t;
+          }));
+        }
+
+        setTiers(tiers.map(t => {
+          if (t.name === tierName) {
+            return { ...t, pokemons: [...t.pokemons, pokemon] };
+          }
+          return t;
+        }));
+
+        setDragging(null);
+      }
+
+      function onDropPool() {
+        if (!dragging) return;
+        const { pokemon, from } = dragging;
+
+        if (from !== 'pool') {
+          setTiers(tiers.map(t => {
+            if (t.name === from) {
+              return { ...t, pokemons: t.pokemons.filter(p => p.id !== pokemon.id) };
+            }
+            return t;
+          }));
+          setPool([...pool, pokemon]);
+        }
+
+        setDragging(null);
+      }
+
+      function addTier() {
+        if (newTierName.trim() === '') return;
+        if (tiers.some(t => t.name === newTierName.trim())) {
+          alert('同じ名前のティアが既にあります');
+          return;
+        }
+        setTiers([...tiers, { name: newTierName.trim(), pokemons: [] }]);
+        setNewTierName('');
+      }
+
+      function removeTier(name) {
+        const tierToRemove = tiers.find(t => t.name === name);
+        if (tierToRemove) {
+          setPool([...pool, ...tierToRemove.pokemons]);
+        }
+        setTiers(tiers.filter(t => t.name !== name));
+      }
+
+      function saveAsImage() {
+        const element = document.querySelector('.tier-container');
+        html2canvas(element).then(canvas => {
+          const link = document.createElement('a');
+          link.download = 'tierlist.png';
+          link.href = canvas.toDataURL();
+          link.click();
+        });
+      }
+
+      return (
+        <div>
+          <div className="add-tier-container">
+            <input
+              type="text"
+              value={newTierName}
+              onChange={e => setNewTierName(e.target.value)}
+              placeholder="新しいティア名"
+            />
+            <button className="save" onClick={addTier}>ティア追加</button>
+          </div>
+
+          <div className="tier-container">
+            {tiers.map(tier => (
+              <div
+                key={tier.name}
+                className="tier-row"
+                onDragOver={e => e.preventDefault()}
+                onDrop={() => onDropTier(tier.name)}
+              >
+                <div className="tier-label">{tier.name}</div>
+                <div className="tier-images">
+                  {tier.pokemons.map(p => (
+                    <img
+                      key={p.id}
+                      src={p.img}
+                      alt={p.name}
+                      draggable
+                      onDragStart={() => onDragStart(p, tier.name)}
+                    />
+                  ))}
+                </div>
+                <button
+                  onClick={() => removeTier(tier.name)}
+                  style={{
+                    marginLeft: 'auto',
+                    padding: '0.25rem 0.5rem',
+                    backgroundColor: '#e53e3e',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '4px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  削除
+                </button>
+              </div>
+            ))}
+
+            <div
+              className="tier-row"
+              onDragOver={e => e.preventDefault()}
+              onDrop={onDropPool}
+            >
+              <div className="tier-label">プール</div>
+              <div className="tier-images">
+                {pool.map(p => (
+                  <img
+                    key={p.id}
+                    src={p.img}
+                    alt={p.name}
+                    draggable
+                    onDragStart={() => onDragStart(p, 'pool')}
+                  />
+                ))}
+              </div>
             </div>
           </div>
+
+          <div className="button-container">
+            <button className="save" onClick={saveAsImage}>画像として保存</button>
+          </div>
         </div>
-      </section>
-    </div>
-  </div>
-
-  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-  <script>
-    // 主要なDOM要素の取得
-    const $ = s => document.querySelector(s);
-    const $$ = s => Array.from(document.querySelectorAll(s));
-    const poolEl = $('#pool');
-    const tiersEl = $('#tiers');
-    const pickFileBtn = $('#pick');
-    const fileInput = $('#file');
-    const exportPngBtn = $('#exportPng');
-    const msgEl = $('#msg');
-
-    // 定数
-    const THUMB_SIZE = 90;
-    const MAX_FILE_SIZE = 2 * 1024 * 1024;
-    const MAX_DIMENSION = 2000;
-    let items = []; // 画像データを保持する配列
-
-    // === ヘルパー関数 ===
-    function showMessage(text) {
-      msgEl.textContent = text;
-      setTimeout(() => msgEl.textContent = '', 5000);
-    }
-    
-    // ユニークIDを生成
-    function uid() {
-      return Math.random().toString(36).slice(2, 10);
+      );
     }
 
-    // ファイルからDataURL（画像のデータ）を生成
-    function fileToDataURL(file) {
-      return new Promise((resolve, reject) => {
-        const fr = new FileReader();
-        fr.onload = () => resolve(fr.result);
-        fr.onerror = reject;
-        fr.readAsDataURL(file);
-      });
-    }
-
-    // 画像のサムネイルを生成
-    async function makeThumbDataURL(file) {
-      if (file.size > MAX_FILE_SIZE) throw new Error('ファイルサイズが大きすぎます（最大2MB）。');
-      
-      const dataUrl = await fileToDataURL(file);
-      const img = new Image();
-      img.src = dataUrl;
-      await new Promise(resolve => img.onload = resolve);
-      
-      if (Math.max(img.width, img.height) > MAX_DIMENSION) throw new Error('画像の辺が大きすぎます（最大2000px）。');
-      
-      const cnv = document.createElement('canvas');
-      const ctx = cnv.getContext('2d');
-      cnv.width = cnv.height = THUMB_SIZE;
-      const m = Math.min(img.width, img.height);
-      const sx = (img.width - m) / 2;
-      const sy = (img.height - m) / 2;
-      ctx.drawImage(img, sx, sy, m, m, 0, 0, THUMB_SIZE, THUMB_SIZE);
-      
-      return cnv.toDataURL('image/png');
-    }
-
-    // サムネイルDOM要素の生成
-    function createThumbElement(item) {
-      const div = document.createElement('div');
-      div.className = 'thumb';
-      div.dataset.id = item.id;
-      const img = document.createElement('img');
-      img.alt = 'アイテム';
-      img.loading = 'lazy';
-      img.src = item.dataUrl;
-      const del = document.createElement('button');
-      del.className = 'x';
-      del.type = 'button';
-      del.setAttribute('aria-label', '削除');
-      del.textContent = '×';
-      del.addEventListener('click', () => removeItem(item.id));
-      div.append(img, del);
-      return div;
-    }
-    
-    // === メインロジック ===
-
-    // ドラッグ＆ドロップ機能の初期化
-    function initDnD() {
-      const sortableContainers = [poolEl, ...$$('.tier-row')];
-      sortableContainers.forEach(el => {
-        Sortable.create(el, {
-          group: 'tiers',
-          animation: 150,
-        });
-      });
-    }
-
-    // ファイルの読み込み
-    async function importFiles(files) {
-      if (!files || files.length === 0) return;
-      for (const file of files) {
-        try {
-          const dataUrl = await makeThumbDataURL(file);
-          const item = { id: uid(), dataUrl };
-          items.push(item);
-          poolEl.appendChild(createThumbElement(item));
-        } catch (e) {
-          showMessage(e.message);
-        }
-      }
-    }
-
-    // 画像の削除
-    function removeItem(id) {
-      items = items.filter(x => x.id !== id);
-      const el = document.querySelector(`.thumb[data-id="${id}"]`);
-      if (el && el.parentNode) {
-        el.parentNode.removeChild(el);
-      }
-    }
-
-    // === イベントリスナーの設定 ===
-    document.addEventListener('DOMContentLoaded', () => {
-      // 初期化
-      initDnD();
-
-      // 「ファイルを選択」ボタン
-      pickFileBtn.addEventListener('click', () => fileInput.click());
-
-      // ファイル入力欄の変更
-      fileInput.addEventListener('change', e => {
-        importFiles(Array.from(e.target.files || []));
-        e.target.value = ''; // 同じファイルを続けてアップロードできるように
-      });
-
-      // ドラッグ＆ドロップによるファイル読み込み
-      poolEl.addEventListener('dragover', e => e.preventDefault());
-      poolEl.addEventListener('drop', e => {
-        e.preventDefault();
-        const dt = e.dataTransfer;
-        if (dt && dt.files && dt.files.length > 0) {
-          importFiles(Array.from(dt.files));
-        }
-      });
-
-      // PNG書き出しボタン
-      exportPngBtn.addEventListener('click', async () => {
-        try {
-          // 未配置プールを非表示にしてから書き出し
-          poolEl.style.display = 'none';
-          const canvas = await html2canvas($('#board'), {
-            backgroundColor: '#fff',
-            scale: Math.min(2, window.devicePixelRatio || 1)
-          });
-          const link = document.createElement('a');
-          link.href = canvas.toDataURL('image/png');
-          link.download = 'tierlist.png';
-          link.click();
-        } catch (e) {
-          showMessage(`PNG書き出しに失敗しました: ${e.message}`);
-        } finally {
-          poolEl.style.display = 'flex';
-        }
-      });
-    });
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
   </script>
 </body>
 </html>
