@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html lang="ja">
 <head>
   <meta charset="utf-8" />
@@ -211,7 +212,7 @@
       </div>
     </div>
     <p class="lead">画像をドラッグ＆ドロップで並べ替え。</p>
- 
+
     <div class="grid">
       <section class="card" aria-label="操作">
         <h2 style="margin:0 0 8px; font-size:18px">画像の読み込み</h2>
@@ -227,7 +228,7 @@
             <div id="pool" class="pool" aria-label="未配置プール"></div>
         </div>
       </section>
- 
+
       <section class="card export-wrap" aria-label="プレビュー">
         <div class="export-head row">
           <strong>Tier表</strong><span style="flex:1"></span><span class="hint">画像をドラッグして並び替え</span>
@@ -259,7 +260,7 @@
       </section>
     </div>
   </div>
- 
+
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <script>
@@ -272,13 +273,13 @@
     const fileInput = $('#file');
     const exportPngBtn = $('#exportPng');
     const msgEl = $('#msg');
- 
+
     // 定数
     const THUMB_SIZE = 90;
     const MAX_FILE_SIZE = 2 * 1024 * 1024;
     const MAX_DIMENSION = 2000;
     let items = []; // 画像データを保持する配列
- 
+
     // === ヘルパー関数 ===
     function showMessage(text) {
       msgEl.textContent = text;
@@ -289,7 +290,7 @@
     function uid() {
       return Math.random().toString(36).slice(2, 10);
     }
- 
+
     // ファイルからDataURL（画像のデータ）を生成
     function fileToDataURL(file) {
       return new Promise((resolve, reject) => {
@@ -299,7 +300,7 @@
         fr.readAsDataURL(file);
       });
     }
- 
+
     // 画像のサムネイルを生成
     async function makeThumbDataURL(file) {
       if (file.size > MAX_FILE_SIZE) throw new Error('ファイルサイズが大きすぎます（最大2MB）。');
@@ -321,7 +322,7 @@
       
       return cnv.toDataURL('image/png');
     }
- 
+
     // サムネイルDOM要素の生成
     function createThumbElement(item) {
       const div = document.createElement('div');
@@ -342,7 +343,7 @@
     }
     
     // === メインロジック ===
- 
+
     // ドラッグ＆ドロップ機能の初期化
     function initDnD() {
       const sortableContainers = [poolEl, ...$$('.tier-row')];
@@ -353,7 +354,7 @@
         });
       });
     }
- 
+
     // ファイルの読み込み
     async function importFiles(files) {
       if (!files || files.length === 0) return;
@@ -368,7 +369,7 @@
         }
       }
     }
- 
+
     // 画像の削除
     function removeItem(id) {
       items = items.filter(x => x.id !== id);
@@ -377,21 +378,21 @@
         el.parentNode.removeChild(el);
       }
     }
- 
+
     // === イベントリスナーの設定 ===
     document.addEventListener('DOMContentLoaded', () => {
       // 初期化
       initDnD();
- 
+
       // 「ファイルを選択」ボタン
       pickFileBtn.addEventListener('click', () => fileInput.click());
- 
+
       // ファイル入力欄の変更
       fileInput.addEventListener('change', e => {
         importFiles(Array.from(e.target.files || []));
         e.target.value = ''; // 同じファイルを続けてアップロードできるように
       });
- 
+
       // ドラッグ＆ドロップによるファイル読み込み
       poolEl.addEventListener('dragover', e => e.preventDefault());
       poolEl.addEventListener('drop', e => {
@@ -401,7 +402,7 @@
           importFiles(Array.from(dt.files));
         }
       });
- 
+
       // PNG書き出しボタン
       exportPngBtn.addEventListener('click', async () => {
         try {
